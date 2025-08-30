@@ -1,0 +1,90 @@
+# chatgpt
+stages:
+  - prepare
+  - commit
+  - merge_request
+
+variables:
+  GITLAB_TOKEN: $GITLAB_TOKEN
+  PROJECT_ID: $CI_PROJECT_ID
+  TARGET_BRANCH: $CI_DEFAULT_BRANCH
+  NEW_BRANCH: "feature/add-file-$(date +%s)"
+  FILE_NAME: "new-file.txt"
+
+create_branch_and_commit:
+  stage: commit
+  image: alpine/git
+  script:
+    - git config --global user.name "GitLab CI"
+    - git config --global user.email "ci@example.com"
+    - git clone https://oauth2:${GITLAB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
+    - cd $(basename "$CI_PROJECT_PATH")
+    - git checkout -b "${NEW_BRANCH}"
+    - echo "Hello from CI pipeline at $(date)" > "${FILE_NAME}"
+    - git add "${FILE_NAME}"
+    - git commit -m "Add ${FILE_NAME} via CI pipeline"
+    - git push origin "${NEW_BRANCH}"
+  only:
+    - schedules
+    - triggers
+    - web
+
+open_merge_request:
+  stage: merge_request
+  image: curlimages/curl:latest
+  script:
+    - |
+      curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+          --header "Content-Type: application/json" \
+          --data "{ \"id\": \"${PROJECT_ID}\", \"source_branch\": \"${NEW_BRANCH}\", \"target_branch\": \"${TARGET_BRANCH}\", \"title\": \"Add ${FILE_NAME} via CI\" }" \
+          --request POST "https://${CI_SERVER_HOST}/api/v4/projects/${PROJECT_ID}/merge_requests"
+  only:
+    - schedules
+    - triggers
+    - web
+---
+# grok
+stages:
+  - update
+
+update_file_and_create_mr:
+  stage: update
+  image: alpine:latest
+  before_script:
+    # Install necessary tools
+    - apk add --no-cache git curl jq
+    # Configure git
+    - git config --global user.email "ci-bot@gitlab.com"
+    - git config --global user.name "CI Bot"
+  script:
+    # Clone the repository
+    - git clone "https://oauth2:${CI_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" repo
+    - cd repo
+    # Create or update file
+    - echo "Updated at $(date)" > example.txt
+    # Create a new branch
+    - git checkout -b "update-file-$(date +%s)"
+    # Add and commit changes
+    - git add example.txt
+    - git commit -m "Update example.txt via CI"
+    # Push the branch
+    - git push "https://oauth2:${CI_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" HEAD
+    # Create merge request using GitLab API
+    - |
+      curl --request POST \
+        --header "PRIVATE-TOKEN: ${CI_TOKEN}" \
+        --header "Content-Type: application/json" \
+        --data '{
+          "source_branch": "'"$(git rev-parse --abbrev-ref HEAD)"'",
+          "target_branch": "main",
+          "title": "Automated update of example.txt",
+          "description": "This MR updates example.txt with new content",
+          "remove_source_branch": true
+        }' \
+        "https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/merge_requests" | jq .
+  rules:
+    # Run only on schedules or manual trigger
+    - if: '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "web"'
+      when: always
+  variables:
+    CI_TOKEN: $GITLAB_PERSONAL_ACCESS_TOKEN

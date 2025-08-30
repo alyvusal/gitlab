@@ -1,0 +1,4 @@
+include:
+  - component: $CI_SERVER_FQDN/components/opentofu/job-templates@2.13.0
+    inputs:
+      opentofu_version: '1.10.3'

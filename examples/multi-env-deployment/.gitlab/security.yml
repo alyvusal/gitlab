@@ -1,0 +1,191 @@
+# trivy:
+#   image:
+#     name: docker.io/aquasec/trivy:latest
+#     entrypoint: [""]
+#   variables:
+#     GIT_STRATEGY: none
+#     TRIVY_NO_PROGRESS: "true"
+#     TRIVY_CACHE_DIR: ".trivycache/"
+#   allow_failure: true
+#   script:
+#     - trivy --version
+#     # Run config scan and generate GitLab SAST-compatible report
+#     - trivy config --exit-code 0 --format json --output "gl-sast-report.json" $CI_PROJECT_DIR
+#     # Fail the job if CRITICAL misconfigurations are found
+#     - trivy config --exit-code 1 --severity CRITICAL $CI_PROJECT_DIR
+#     - trivy config --exit-code 1 --severity CRITICAL $CI_PROJECT_DIR/modules/
+#   cache:
+#     paths:
+#       - .trivycache/
+#   artifacts:
+#     when: always
+#     reports:
+#       sast: gl-sast-report.json
+#   rules:
+#     - if: $SAST_DISABLED == "true" || $SAST_DISABLED == "1"
+#       when: never
+#     - if: '$CI_PIPELINE_SOURCE == "web"'
+#       when: never
+#     - if: '$CI_PIPELINE_SOURCE == "schedule"'
+#       when: never
+#     # run by default in other pipeline sources (push, merge_request, etc.)
+#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#       changes:
+#         - envs/**/*
+#         - modules/**/*
+#       when: always
+#     - when: never
+
+
+# https://gitlab.com/components/sast/-/blob/3.0.1/templates/iac-sast.yml?ref_type=tags
+kics-iac-sast:
+  stage: test
+  image:
+    name: "$CI_TEMPLATE_REGISTRY_HOST/security-products/kics:6"
+  variables:
+    SEARCH_MAX_DEPTH: 4
+  script:
+    - /analyzer run
+  artifacts:
+    access: 'developer'
+    reports:
+      sast: gl-sast-report.json
+  allow_failure: true
+  rules:
+    - if: $SAST_DISABLED == "true" || $SAST_DISABLED == "1"
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # run by default in other pipeline sources (push, merge_request, etc.)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - envs/**/*
+        - modules/**/*
+      when: always
+    - when: never
+
+# https://gitlab.com/guided-explorations/ci-components/checkov-iac-sast/-/blob/0.9.30/templates/checkov-iac-sast.yml?ref_type=tags
+checkov-iac-sast:
+  variables:
+    CANONICAL_SOURCE: 'https://gitlab.com/guided-explorations/ci-components/checkov-iac-sast'
+    CKV_CONTAINER_TAG: 3.2.83
+  stage: test
+  allow_failure: true
+  image:
+    name: bridgecrew/checkov:$CKV_CONTAINER_TAG
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - |
+      if [[ "${CI_DEBUG_TRACE,,}" == "true" || "${CI_COMPONENT_TRACE,,}" == "true" ]]; then
+        echo "CI Component Trace (CI_COMPONENT_TRACE) or GitLab's global trace (CI_DEBUG_TRACE) has been set, debug logging. More info: https://docs.gitlab.com/ee/ci/variables/#enable-debug-logging"
+        set -xv
+      fi
+
+      echo "Original GitLab CI Component source at: $CANONICAL_SOURCE"
+
+      if [[ ! "${CKV_IS_ALLOW_FAILURE}" == "false" ]]; then
+        SOFTFAILARG='--soft-fail'
+      fi
+
+      if [[ "${GITLAB_FEATURES}" == *"security_dashboard"* ]]; then
+        echo "You are licensed for GitLab Security Dashboards, you will find scanning results in Security Dashboard."
+        OUTPUTARG='gitlab_sast'
+        OUTPUTFILEEXT='json'
+      else
+        echo "You will find scanning results in the GitLab Test results visualization panel on your pipeline tabs."
+        OUTPUTARG='junitxml'
+        OUTPUTFILEEXT='xml'
+      fi
+
+      if [[ "${CKV_ATTEMPT_COLOR_LOGS,,}" == "true" && ! -z "$(command -v screen)" ]]; then
+        script -q -c 'checkov ${SOFTFAILARG,,} -d . --output ${OUTPUTARG} | tee checkov-sast.${OUTPUTFILEEXT}' ; CKVEXIT=${PIPESTATUS[0]}
+      else
+        checkov ${SOFTFAILARG} -d . --output ${OUTPUTARG} | tee checkov-sast.${OUTPUTFILEEXT} ; CKVEXIT=${PIPESTATUS[0]}
+      fi
+
+      if [[ ! "${CKV_IS_ALLOW_FAILURE,,}" == "false" ]]; then
+        exit $(cat CKVEXIT)
+      fi
+  artifacts:
+    reports:
+      junit: "checkov-sast.xml"
+      sast: "checkov-sast.json"
+  rules:
+    # Skip if disabled
+    - if: '$SAST_DISABLED == "true" || $SAST_DISABLED == "1"'
+      when: never
+    # Skip on manual/scheduled
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # Run on MR pipelines when relevant files change
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - envs/**/*.{yml,yaml,json,template,tf}
+        - modules/**/*.{yml,yaml,json,template,tf}
+      when: always
+    # Default: never
+    - when: never
+
+include:
+  # https://gitlab.com/components/secret-detection
+  - component: $CI_SERVER_FQDN/components/secret-detection/secret-detection@2.1.0
+    inputs:
+      enable_mr_pipelines: true
+    rules:
+      - if: $SECRET_DETECTION_DISABLED == "true" || $SECRET_DETECTION_DISABLED == "1"
+        when: never
+      - if: '$CI_PIPELINE_SOURCE == "web"'
+        when: never
+      - if: '$CI_PIPELINE_SOURCE == "schedule"'
+        when: never
+      # run by default in other pipeline sources (push, merge_request, etc.)
+      - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+        changes:
+          - envs/**/*.{yml,yaml,json,template,tf}
+          - modules/**/*.{yml,yaml,json,template,tf}
+        when: always
+      - when: never
+  # https://gitlab.com/components/sast#infrastructure-as-code-iac-scanning
+  # - component: $CI_SERVER_FQDN/components/sast/iac-sast@main
+  #   inputs:
+  #     enable_mr_pipelines: true  # version 3.0.1 does not have this flag
+  #     image_tag: "6"
+  #     search_max_depth: "4"
+  #   rules:
+  #     - if: $SAST_DISABLED == "true" || $SAST_DISABLED == "1"
+  #       when: never
+  #     - if: '$CI_PIPELINE_SOURCE == "web"'
+  #       when: never
+  #     - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  #       when: never
+  #     # run by default in other pipeline sources (push, merge_request, etc.)
+  #     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  #       changes:
+  #         - envs/**/*
+  #         - modules/**/*
+  #       when: always
+  #     - when: never
+  # https://gitlab.com/guided-explorations/ci-components/checkov-iac-sast
+  # - component: $CI_SERVER_FQDN/guided-explorations/ci-components/checkov-iac-sast/checkov-iac-sast@0.9.30
+  #   inputs:
+  #     enable_mr_pipelines: true
+  #   rules:
+  #     - if: $SAST_DISABLED == "true" || $SAST_DISABLED == "1"
+  #       when: never
+  #     - if: '$CI_PIPELINE_SOURCE == "web"'
+  #       when: never
+  #     - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  #       when: never
+  #     # run by default in other pipeline sources (push, merge_request, etc.)
+  #     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  #       changes:
+  #         - envs/**/*
+  #         - modules/**/*
+  #       when: always
+  #     - when: never

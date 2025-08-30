@@ -1,0 +1,116 @@
+networks:
+  lab_backend:
+    external: true
+
+volumes:
+  dind:
+
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:18.2.1-ce.0
+    container_name: gitlab
+    hostname: gitlab-192.168.0.100.nip.io
+    restart: unless-stopped
+    networks: [lab_backend]
+    env_file: [gitlab.ini]
+    shm_size: '256m'  # Defines the size of the /dev/shm partition mounted on the container
+    labels:
+      - traefik.enable=true
+      # GitLab web routing (port 80)
+      - traefik.http.routers.gitlab-web.rule=Host(`gitlab-192.168.0.100.nip.io`)
+      - traefik.http.routers.gitlab-web.entrypoints=web
+      - traefik.http.routers.gitlab-web.service=gitlab-web-svc
+      - traefik.http.services.gitlab-web-svc.loadbalancer.server.port=80
+      # GitLab Registry routing (port 5005)
+      - traefik.tcp.routers.gitlab-registry.rule=HostSNI(`*`)
+      - traefik.tcp.routers.gitlab-registry.entrypoints=registry
+      - traefik.tcp.routers.gitlab-registry.service=gitlab-registry-svc
+      - traefik.tcp.services.gitlab-registry-svc.loadbalancer.server.port=5005
+      # GitLab SSH routing (port 22)
+      - traefik.tcp.routers.gitlab-ssh.rule=HostSNI(`*`)  # Match all SNI hosts
+      - traefik.tcp.routers.gitlab-ssh.entrypoints=ssh
+      - traefik.tcp.routers.gitlab-ssh.service=gitlab-ssh-svc
+      - traefik.tcp.services.gitlab-ssh-svc.loadbalancer.server.port=22
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - ./tmp/docker_data/etc:/etc/gitlab
+      - ./tmp/docker_data/var:/var/opt/gitlab
+    healthcheck:
+      test: ["CMD", "curl", "-fI", "http://localhost/users/sign_in"]
+      interval: 10s
+      timeout: 5s
+      retries: 50
+
+# https://ubzen.medium.com/running-gitlab-runner-in-a-docker-container-b8140f2f19a5
+
+  dind:
+    image: docker:20-dind
+    container_name: gitlab-dind
+    hostname: gitlab-dind
+    restart: always
+    privileged: true
+    networks: [lab_backend]
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command:
+      - --storage-driver=overlay2
+    volumes:
+      - dind:/var/lib/docker
+    depends_on:
+      gitlab:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-v", "-w", "1", "localhost", "2375"]
+      interval: 10s
+      timeout: 5s
+      retries: 50
+
+  register-runner:
+    profiles: [register]
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-register-runner
+    hostname: gitlab-register-runner
+    depends_on:
+      gitlab:
+        condition: service_healthy
+      dind:
+        condition: service_healthy
+    networks: [lab_backend]
+    restart: 'no'
+    environment:
+      - CI_SERVER_URL=${CI_SERVER_URL}
+      - REGISTRATION_TOKEN=${REGISTRATION_TOKEN}
+    command:
+      - register
+      - --non-interactive
+      - --locked=false
+      - --name=$RUNNER_NAME
+      - --executor=docker
+      - --docker-image=docker:20-dind
+      - --docker-volumes=/var/run/docker.sock:/var/run/docker.sock
+      - --url=$CI_SERVER_URL
+      - --registration-token=$REGISTRATION_TOKEN
+      - --tag-list=docker,container,ubuntu
+      - --run-untagged
+    volumes:
+      - ./runner-config.toml:/etc/gitlab-runner/config.toml
+    # add below to runner-config.toml if clone url is wrong:
+    # clone_url = "http://gitlab-192.168.0.100.nip.io"
+
+  runner:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner
+    hostname: gitlab-runner
+    restart: always
+    networks: [lab_backend]
+    depends_on:
+      gitlab:
+        condition: service_healthy
+      dind:
+        condition: service_healthy
+    environment:
+      - DOCKER_HOST=tcp://dind:2375
+    volumes:
+      - ./runner-config.toml:/etc/gitlab-runner/config.toml
+      - dind:/var/lib/docker

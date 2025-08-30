@@ -1,0 +1,174 @@
+variables:
+  ENVIRONMENT_DEV: "dev"
+  TOFU_ROOT_DIR_DEV: envs/dev
+  ENVIRONMENT_PROD: "prod"
+  TOFU_ROOT_DIR_PROD: envs/prod
+
+fmt:
+  extends: [.opentofu:fmt]
+  parallel:
+    matrix:
+      - GITLAB_TOFU_ROOT_DIR: [envs/dev, envs/prod]
+  rules:
+    # skip job if pipeline triggered manually or scheduled
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # run by default in other pipeline sources (push, merge_request, etc.)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - $TOFU_ROOT_DIR_DEV/**/*.tf
+    - when: never
+
+validate:
+  extends: [.opentofu:validate]
+  parallel:
+    matrix:
+      - GITLAB_TOFU_ROOT_DIR: envs/dev
+        GITLAB_TOFU_STATE_NAME: dev
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/dev"
+      - GITLAB_TOFU_ROOT_DIR: envs/prod
+        GITLAB_TOFU_STATE_NAME: prod
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/prod"
+  rules:
+    # skip job if pipeline triggered manually or scheduled
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # run by default in other pipeline sources (push, merge_request, etc.)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - $TOFU_ROOT_DIR_DEV/**/*
+        - modules/**/*
+        - .gitlab-ci.yml
+        - .gitlab/*
+    - when: never
+
+detect-drift:
+  extends: [.opentofu:detect-drift]
+  parallel:
+    matrix:
+      - GITLAB_TOFU_ROOT_DIR: envs/dev
+        GITLAB_TOFU_STATE_NAME: dev
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/dev"
+      - GITLAB_TOFU_ROOT_DIR: envs/prod
+        GITLAB_TOFU_STATE_NAME: prod
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/prod"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == 'schedule'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+slack-notify-drift:
+  stage: build
+  needs: ["detect-drift"]
+  parallel:
+    matrix:
+      - GITLAB_TOFU_ROOT_DIR: envs/dev
+        GITLAB_TOFU_STATE_NAME: dev
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/dev"
+      - GITLAB_TOFU_ROOT_DIR: envs/prod
+        GITLAB_TOFU_STATE_NAME: prod
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/prod"
+  script:
+    - |
+      curl -X POST -H 'Content-type: application/json' \
+        --data '{"text":"⚠️ Drift detected in *${GITLAB_TOFU_STATE_NAME}* environment!"}' \
+        $SLACK_WEBHOOK_URL
+  when: on_failure
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == 'schedule'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+plan:
+  extends: [.opentofu:plan]
+  environment: $GITLAB_CI_ENVIRONMENT_SLUG
+  parallel:
+    matrix:
+      - GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+        GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV
+        GITLAB_CI_ENVIRONMENT_SLUG: $ENVIRONMENT_DEV
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"  # for local test
+      - GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_PROD
+        GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_PROD
+        GITLAB_CI_ENVIRONMENT_SLUG: $ENVIRONMENT_PROD
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_PROD}"  # for local test
+  rules:
+    # skip job if pipeline triggered manually or scheduled
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # run by default in other pipeline sources (push, merge_request, etc.)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - $TOFU_ROOT_DIR_DEV/**/*
+        - modules/**/*
+        - .gitlab-ci.yml
+        - .gitlab/*
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - $TOFU_ROOT_DIR_DEV/**/*
+        - modules/**/*
+        - .gitlab-ci.yml
+        - .gitlab/*
+    - when: never
+
+apply:
+  extends: [.opentofu:apply]
+  environment: $GITLAB_CI_ENVIRONMENT_SLUG
+  parallel:
+    matrix:
+      - GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+        GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV
+        GITLAB_CI_ENVIRONMENT_SLUG: $ENVIRONMENT_DEV
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"  # for local test
+      - GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_PROD
+        GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_PROD
+        GITLAB_CI_ENVIRONMENT_SLUG: $ENVIRONMENT_PROD
+        GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_PROD}"  # for local test
+  rules:
+    # Run manually only on main branch after merge
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: false
+    # Skip in all other cases
+    - when: never
+
+# plan-delete-dev:
+#   extends: [.opentofu:plan]
+#   stage: delete
+#   environment:
+#     name: $ENVIRONMENT_DEV
+#     on_stop: apply-delete-dev   # shows Stop button in GitLab
+#   variables:
+#     GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+#     GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV
+#     GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"
+#   script:
+#     - echo "Preparing delete plan for $CI_ENVIRONMENT_NAME"
+#     - opentofu plan -destroy -out plan-delete.tfplan
+#   artifacts:
+#     paths:
+#       - plan-delete.tfplan
+#     expire_in: 1h
+#   when: manual   # triggered from UI Stop button
+
+# apply-delete-dev:
+#   extends: [.opentofu:apply]
+#   stage: delete
+#   environment:
+#     name: $ENVIRONMENT_DEV
+#     action: stop   # actually stops the environment in GitLab
+#   needs:
+#     - job: plan-delete-dev
+#       artifacts: true
+#   variables:
+#     GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+#     GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV
+#     GITLAB_TOFU_STATE_ADDRESS: "https://$CI_SERVER_FQDN/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"
+#   script:
+#     - echo "Applying delete plan for $CI_ENVIRONMENT_NAME"
+#     - opentofu apply plan-delete.tfplan
+#   when: manual   # manual trigger after plan review

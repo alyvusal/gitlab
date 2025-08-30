@@ -1,0 +1,348 @@
+$ echo $CHAT_CHANNEL
+$ echo $CHAT_INPUT
+$ echo $CHAT_USER_ID
+$ echo $CI
+true
+$ echo $CI_API_V4_URL
+https://gitlab.corp.example.com/api/v4
+$ echo $CI_BUILDS_DIR
+/home/gitlab-runner/builds
+$ echo $CI_COMMIT_AUTHOR
+Vusal Aliyev <valiyev@example.com>
+$ echo $CI_COMMIT_BEFORE_SHA
+ccd18941c7f5e460e59edeb8ecc03493d09b9f4d
+$ echo $CI_COMMIT_BRANCH
+dev
+$ echo $CI_COMMIT_DESCRIPTION
+$ echo $CI_COMMIT_MESSAGE
+add pre-defined variables show for test purpose
+$ echo $CI_COMMIT_REF_NAME
+dev
+$ echo $CI_COMMIT_REF_PROTECTED
+false
+$ echo $CI_COMMIT_REF_SLUG
+dev
+$ echo $CI_COMMIT_SHA
+3e707d82347b2bdeb39f6cf8da718c4a51b8e32b
+$ echo $CI_COMMIT_SHORT_SHA
+3e707d82
+$ echo $CI_COMMIT_TAG
+$ echo $CI_COMMIT_TIMESTAMP
+2021-12-14T23:59:31+04:00
+$ echo $CI_COMMIT_TITLE
+add pre-defined variables show for test purpose
+$ echo $CI_CONCURRENT_ID
+0
+$ echo $CI_CONCURRENT_PROJECT_ID
+0
+$ echo $CI_CONFIG_PATH
+.gitlab-ci.yml
+$ echo $CI_DEBUG_TRACE
+$ echo $CI_DEFAULT_BRANCH
+dev
+$ echo $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX
+gitlab.corp.example.com:443/infra/dependency_proxy/containers
+$ echo $CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX
+$ echo $CI_DEPENDENCY_PROXY_PASSWORD
+[MASKED]
+$ echo $CI_DEPENDENCY_PROXY_SERVER
+gitlab.corp.example.com:443
+$ echo $CI_DEPENDENCY_PROXY_USER
+[MASKED]
+$ echo $CI_DEPLOY_FREEZE
+$ echo $CI_DEPLOY_PASSWORD
+$ echo $CI_DEPLOY_USER
+$ echo $CI_DISPOSABLE_ENVIRONMENT
+$ echo $CI_ENVIRONMENT_NAME
+$ echo $CI_ENVIRONMENT_SLUG
+$ echo $CI_ENVIRONMENT_URL
+$ echo $CI_ENVIRONMENT_ACTION
+$ echo $CI_ENVIRONMENT_TIER
+$ echo $CI_HAS_OPEN_REQUIREMENTS
+$ echo $CI_JOB_ID
+28728
+$ echo $CI_JOB_IMAGE
+$ echo $CI_JOB_JWT
+[MASKED]
+$ echo $CI_JOB_MANUAL
+$ echo $CI_JOB_NAME
+tfplan
+$ echo $CI_JOB_STAGE
+plan
+$ echo $CI_JOB_STATUS
+running
+$ echo $CI_JOB_TOKEN
+[MASKED]
+$ echo $CI_JOB_URL
+https://gitlab.corp.example.com/infra/iac-infra/consul/-/jobs/28728
+$ echo $CI_JOB_STARTED_AT
+2021-12-14T20:00:02Z
+$ echo $CI_KUBERNETES_ACTIVE
+$ echo $CI_NODE_INDEX
+$ echo $CI_NODE_TOTAL
+1
+$ echo $CI_OPEN_MERGE_REQUESTS
+$ echo $CI_PAGES_DOMAIN
+example.com
+$ echo $CI_PAGES_URL
+http://infra.example.com/iac-infra/consul
+$ echo $CI_PIPELINE_ID
+7233
+$ echo $CI_PIPELINE_IID
+7
+$ echo $CI_PIPELINE_SOURCE
+push
+$ echo $CI_PIPELINE_TRIGGERED
+$ echo $CI_PIPELINE_URL
+https://gitlab.corp.example.com/infra/iac-infra/consul/-/pipelines/7233
+$ echo $CI_PIPELINE_CREATED_AT
+2021-12-14T19:59:46Z
+$ echo $CI_PROJECT_CONFIG_PATH
+.gitlab-ci.yml
+$ echo $CI_PROJECT_DIR
+/home/gitlab-runner/builds/sLBTi5zs/0/infra/iac-infra/consul
+$ echo $CI_PROJECT_ID
+139
+$ echo $CI_PROJECT_NAME
+consul
+$ echo $CI_PROJECT_NAMESPACE
+infra/iac-infra
+$ echo $CI_PROJECT_PATH_SLUG
+infra-iac-infra-consul
+$ echo $CI_PROJECT_PATH
+infra/iac-infra/consul
+$ echo $CI_PROJECT_REPOSITORY_LANGUAGES
+hcl
+$ echo $CI_PROJECT_ROOT_NAMESPACE
+infra
+$ echo $CI_PROJECT_TITLE
+consul
+$ echo $CI_PROJECT_URL
+https://gitlab.corp.example.com/infra/iac-infra/consul
+$ echo $CI_PROJECT_VISIBILITY
+private
+$ echo $CI_PROJECT_CLASSIFICATION_LABEL
+$ echo $CI_REGISTRY_IMAGE
+$ echo $CI_REGISTRY_PASSWORD
+[MASKED]
+$ echo $CI_REGISTRY_USER
+[MASKED]
+$ echo $CI_REGISTRY
+gitlab.corp.example.com:5001
+$ echo $CI_REPOSITORY_URL
+https://[MASKED]:[MASKED]@gitlab.corp.example.com/infra/iac-infra/consul.git
+$ echo $CI_RUNNER_DESCRIPTION
+[MASKED]main.corp.example.com
+$ echo $CI_RUNNER_EXECUTABLE_ARCH
+linux/amd64
+$ echo $CI_RUNNER_ID
+49
+$ echo $CI_RUNNER_REVISION
+e0218c92
+$ echo $CI_RUNNER_SHORT_TOKEN
+sLBTi5zs
+$ echo $CI_RUNNER_TAGS
+shell, [MASKED]main, vault, consul, terraform
+$ echo $CI_RUNNER_VERSION
+14.3.2
+$ echo $CI_SERVER_HOST
+gitlab.corp.example.com
+$ echo $CI_SERVER_NAME
+GitLab
+$ echo $CI_SERVER_PORT
+443
+$ echo $CI_SERVER_PROTOCOL
+https
+$ echo $CI_SERVER_REVISION
+757327a59bc
+$ echo $CI_SERVER_URL
+https://gitlab.corp.example.com
+$ echo $CI_SERVER_VERSION_MAJOR
+13
+$ echo $CI_SERVER_VERSION_MINOR
+12
+$ echo $CI_SERVER_VERSION_PATCH
+3
+$ echo $CI_SERVER_VERSION
+13.12.3
+$ echo $CI_SERVER
+yes
+$ echo $CI_SHARED_ENVIRONMENT
+true
+$ echo $GITLAB_CI
+true
+$ echo $GITLAB_FEATURES
+$ echo $GITLAB_USER_EMAIL
+valiyev@example.com
+$ echo $GITLAB_USER_ID
+180
+$ echo $GITLAB_USER_LOGIN
+valiyev
+$ echo $GITLAB_USER_NAME
+Vusal Aliyev
+$ echo $TRIGGER_PAYLOAD
+$ echo $CI_MERGE_REQUEST_APPROVED
+$ echo $CI_MERGE_REQUEST_ASSIGNEES
+$ echo $CI_MERGE_REQUEST_ID
+$ echo $CI_MERGE_REQUEST_IID
+$ echo $CI_MERGE_REQUEST_LABELS
+$ echo $CI_MERGE_REQUEST_MILESTONE
+$ echo $CI_MERGE_REQUEST_PROJECT_ID
+$ echo $CI_MERGE_REQUEST_PROJECT_PATH
+$ echo $CI_MERGE_REQUEST_PROJECT_URL
+$ echo $CI_MERGE_REQUEST_REF_PATH
+$ echo $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+$ echo $CI_MERGE_REQUEST_SOURCE_BRANCH_SHA
+$ echo $CI_MERGE_REQUEST_SOURCE_PROJECT_ID
+$ echo $CI_MERGE_REQUEST_SOURCE_PROJECT_PATH
+$ echo $CI_MERGE_REQUEST_SOURCE_PROJECT_URL
+$ echo $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+$ echo $CI_MERGE_REQUEST_TARGET_BRANCH_SHA
+$ echo $CI_MERGE_REQUEST_TITLE
+$ echo $CI_MERGE_REQUEST_EVENT_TYPE
+$ echo $CI_MERGE_REQUEST_DIFF_ID
+$ echo $CI_MERGE_REQUEST_DIFF_BASE_SHA
+$ echo $CI_EXTERNAL_PULL_REQUEST_IID
+$ echo $CI_EXTERNAL_PULL_REQUEST_SOURCE_REPOSITORY
+$ echo $CI_EXTERNAL_PULL_REQUEST_TARGET_REPOSITORY
+$ echo $CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_NAME
+$ echo $CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_SHA
+$ echo $CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_NAME
+$ echo $CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_SHA
+
+
+.show-vars:
+  script:
+    - echo $CHAT_CHANNEL
+    - echo $CHAT_INPUT
+    - echo $CHAT_USER_ID
+    - echo $CI
+    - echo $CI_API_V4_URL
+    - echo $CI_BUILDS_DIR
+    - echo $CI_COMMIT_AUTHOR
+    - echo $CI_COMMIT_BEFORE_SHA
+    - echo $CI_COMMIT_BRANCH
+    - echo $CI_COMMIT_DESCRIPTION
+    - echo $CI_COMMIT_MESSAGE
+    - echo $CI_COMMIT_REF_NAME
+    - echo $CI_COMMIT_REF_PROTECTED
+    - echo $CI_COMMIT_REF_SLUG
+    - echo $CI_COMMIT_SHA
+    - echo $CI_COMMIT_SHORT_SHA
+    - echo $CI_COMMIT_TAG
+    - echo $CI_COMMIT_TIMESTAMP
+    - echo $CI_COMMIT_TITLE
+    - echo $CI_CONCURRENT_ID
+    - echo $CI_CONCURRENT_PROJECT_ID
+    - echo $CI_CONFIG_PATH
+    - echo $CI_DEBUG_TRACE
+    - echo $CI_DEFAULT_BRANCH
+    - echo $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX
+    - echo $CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX
+    - echo $CI_DEPENDENCY_PROXY_PASSWORD
+    - echo $CI_DEPENDENCY_PROXY_SERVER
+    - echo $CI_DEPENDENCY_PROXY_USER
+    - echo $CI_DEPLOY_FREEZE
+    - echo $CI_DEPLOY_PASSWORD
+    - echo $CI_DEPLOY_USER
+    - echo $CI_DISPOSABLE_ENVIRONMENT
+    - echo $CI_ENVIRONMENT_NAME
+    - echo $CI_ENVIRONMENT_SLUG
+    - echo $CI_ENVIRONMENT_URL
+    - echo $CI_ENVIRONMENT_ACTION
+    - echo $CI_ENVIRONMENT_TIER
+    - echo $CI_HAS_OPEN_REQUIREMENTS
+    - echo $CI_JOB_ID
+    - echo $CI_JOB_IMAGE
+    - echo $CI_JOB_JWT
+    - echo $CI_JOB_MANUAL
+    - echo $CI_JOB_NAME
+    - echo $CI_JOB_STAGE
+    - echo $CI_JOB_STATUS
+    - echo $CI_JOB_TOKEN
+    - echo $CI_JOB_URL
+    - echo $CI_JOB_STARTED_AT
+    - echo $CI_KUBERNETES_ACTIVE
+    - echo $CI_NODE_INDEX
+    - echo $CI_NODE_TOTAL
+    - echo $CI_OPEN_MERGE_REQUESTS
+    - echo $CI_PAGES_DOMAIN
+    - echo $CI_PAGES_URL
+    - echo $CI_PIPELINE_ID
+    - echo $CI_PIPELINE_IID
+    - echo $CI_PIPELINE_SOURCE
+    - echo $CI_PIPELINE_TRIGGERED
+    - echo $CI_PIPELINE_URL
+    - echo $CI_PIPELINE_CREATED_AT
+    - echo $CI_PROJECT_CONFIG_PATH
+    - echo $CI_PROJECT_DIR
+    - echo $CI_PROJECT_ID
+    - echo $CI_PROJECT_NAME
+    - echo $CI_PROJECT_NAMESPACE
+    - echo $CI_PROJECT_PATH_SLUG
+    - echo $CI_PROJECT_PATH
+    - echo $CI_PROJECT_REPOSITORY_LANGUAGES
+    - echo $CI_PROJECT_ROOT_NAMESPACE
+    - echo $CI_PROJECT_TITLE
+    - echo $CI_PROJECT_URL
+    - echo $CI_PROJECT_VISIBILITY
+    - echo $CI_PROJECT_CLASSIFICATION_LABEL
+    - echo $CI_REGISTRY_IMAGE
+    - echo $CI_REGISTRY_PASSWORD
+    - echo $CI_REGISTRY_USER
+    - echo $CI_REGISTRY
+    - echo $CI_REPOSITORY_URL
+    - echo $CI_RUNNER_DESCRIPTION
+    - echo $CI_RUNNER_EXECUTABLE_ARCH
+    - echo $CI_RUNNER_ID
+    - echo $CI_RUNNER_REVISION
+    - echo $CI_RUNNER_SHORT_TOKEN
+    - echo $CI_RUNNER_TAGS
+    - echo $CI_RUNNER_VERSION
+    - echo $CI_SERVER_HOST
+    - echo $CI_SERVER_NAME
+    - echo $CI_SERVER_PORT
+    - echo $CI_SERVER_PROTOCOL
+    - echo $CI_SERVER_REVISION
+    - echo $CI_SERVER_URL
+    - echo $CI_SERVER_VERSION_MAJOR
+    - echo $CI_SERVER_VERSION_MINOR
+    - echo $CI_SERVER_VERSION_PATCH
+    - echo $CI_SERVER_VERSION
+    - echo $CI_SERVER
+    - echo $CI_SHARED_ENVIRONMENT
+    - echo $GITLAB_CI
+    - echo $GITLAB_FEATURES
+    - echo $GITLAB_USER_EMAIL
+    - echo $GITLAB_USER_ID
+    - echo $GITLAB_USER_LOGIN
+    - echo $GITLAB_USER_NAME
+    - echo $TRIGGER_PAYLOAD
+    - echo $CI_MERGE_REQUEST_APPROVED
+    - echo $CI_MERGE_REQUEST_ASSIGNEES
+    - echo $CI_MERGE_REQUEST_ID
+    - echo $CI_MERGE_REQUEST_IID
+    - echo $CI_MERGE_REQUEST_LABELS
+    - echo $CI_MERGE_REQUEST_MILESTONE
+    - echo $CI_MERGE_REQUEST_PROJECT_ID
+    - echo $CI_MERGE_REQUEST_PROJECT_PATH
+    - echo $CI_MERGE_REQUEST_PROJECT_URL
+    - echo $CI_MERGE_REQUEST_REF_PATH
+    - echo $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    - echo $CI_MERGE_REQUEST_SOURCE_BRANCH_SHA
+    - echo $CI_MERGE_REQUEST_SOURCE_PROJECT_ID
+    - echo $CI_MERGE_REQUEST_SOURCE_PROJECT_PATH
+    - echo $CI_MERGE_REQUEST_SOURCE_PROJECT_URL
+    - echo $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - echo $CI_MERGE_REQUEST_TARGET_BRANCH_SHA
+    - echo $CI_MERGE_REQUEST_TITLE
+    - echo $CI_MERGE_REQUEST_EVENT_TYPE
+    - echo $CI_MERGE_REQUEST_DIFF_ID
+    - echo $CI_MERGE_REQUEST_DIFF_BASE_SHA
+    - echo $CI_EXTERNAL_PULL_REQUEST_IID
+    - echo $CI_EXTERNAL_PULL_REQUEST_SOURCE_REPOSITORY
+    - echo $CI_EXTERNAL_PULL_REQUEST_TARGET_REPOSITORY
+    - echo $CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_NAME
+    - echo $CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_SHA
+    - echo $CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_NAME
+    - echo $CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_SHA

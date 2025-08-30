@@ -1,0 +1,133 @@
+variables:
+  ENVIRONMENT_DEV: "dev"
+  TOFU_ROOT_DIR_DEV: envs/dev
+
+fmt-dev:
+  extends: [.opentofu:fmt]
+  variables:
+    GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+  rules:
+    # skip job if pipeline triggered manually or scheduled
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # run by default in other pipeline sources (push, merge_request, etc.)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - $TOFU_ROOT_DIR_DEV/**/*.tf
+        - .gitlab-ci.yml
+        - .gitlab/*
+    - when: never
+
+validate-dev:
+  extends: [.opentofu:validate]
+  variables:
+    GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+    GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV  # for gitlab.com
+    GITLAB_TOFU_STATE_ADDRESS: "https://gitlab.com/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"  # for local test
+  rules:
+    # skip job if pipeline triggered manually or scheduled
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # run by default in other pipeline sources (push, merge_request, etc.)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - $TOFU_ROOT_DIR_DEV/**/*
+        - modules/**/*
+        - .gitlab-ci.yml
+        - .gitlab/*
+    - when: never
+
+detect-drift-dev:
+  extends: [.opentofu:detect-drift]
+  variables:
+    GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+    GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV  # for gitlab.com
+    GITLAB_TOFU_STATE_ADDRESS: "https://gitlab.com/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"  # for local test
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == 'schedule'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+slack-notify-drift-dev:
+  stage: build
+  needs: ["detect-drift-dev"]
+  script:
+    - |
+      curl -X POST -H 'Content-type: application/json' \
+        --data '{"text":"⚠️ Drift detected in *DEV* environment!"}' \
+        $SLACK_WEBHOOK_URL
+  when: on_failure
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == 'schedule'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+plan-dev:
+  extends: [.opentofu:plan]
+  environment: $ENVIRONMENT_DEV
+  variables:
+    GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+    GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV  # for gitlab.com
+    GITLAB_TOFU_STATE_ADDRESS: "https://gitlab.com/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"  # for local test
+  rules:
+    # skip job if pipeline triggered manually or scheduled
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # run by default in other pipeline sources (push, merge_request, etc.)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - $TOFU_ROOT_DIR_DEV/**/*
+        - modules/**/*
+        - .gitlab-ci.yml
+        - .gitlab/*
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - $TOFU_ROOT_DIR_DEV/**/*
+        - modules/**/*
+        - .gitlab-ci.yml
+        - .gitlab/*
+    - when: never
+
+apply-dev:
+  extends: [.opentofu:apply]
+  environment:
+    name: $ENVIRONMENT_DEV
+    on_stop: destroy-dev   # run destroy-dev job when environment stoppped
+  variables:
+    GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+    GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV  # for gitlab.com
+    GITLAB_TOFU_STATE_ADDRESS: "https://gitlab.com/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"  # for local test
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # Run manually only on main branch after merge
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: false
+    # Skip in all other cases
+    - when: never
+
+destroy-dev:
+  extends: [.opentofu:destroy, .opentofu:delete-state]
+  environment:
+    name: $ENVIRONMENT_DEV
+    action: stop   # run this job when stop triggered
+  variables:
+    GITLAB_TOFU_ROOT_DIR: $TOFU_ROOT_DIR_DEV
+    GITLAB_TOFU_STATE_NAME: $ENVIRONMENT_DEV  # for gitlab.com
+    GITLAB_TOFU_STATE_ADDRESS: "https://gitlab.com/api/v4/projects/${PROJECT_ID}/terraform/state/${ENVIRONMENT_DEV}"  # for local test
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # Run manually only on main branch after merge
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: false

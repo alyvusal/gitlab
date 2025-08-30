@@ -1,0 +1,25 @@
+stages:
+  - deploy
+
+deploy:
+  variables:
+    KUBE_CONTEXT: alyvusal/test:k8s-agent
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  script:
+    - echo "Deploying to Kubernetes..."
+    - echo "KUBECONFIG is at':' $KUBECONFIG"
+    # To use custom kubeconfig file, uncomment the next line
+    # create variable KUBECONFIG in https://gitlab.com/<USERNAME>/<PROJECT>/-/settings/ci_cd
+    # with type file and content of ~/.kube/config file
+    # it will be automatically mounted to  /builds/<USERNAME>/<PROJECT>.tmp/KUBECONFIG and exported as KUBECONFIG variable
+    # you may need to add --insecure-skip-tls-verify=true to the kubectl commands
+    - kubectl config get-contexts
+    - kubectl config use-context "$KUBE_CONTEXT"
+    - kubectl cluster-info
+    - kubectl get nodes
+    - kubectl apply -f nginx.yaml
+  only:
+    - master

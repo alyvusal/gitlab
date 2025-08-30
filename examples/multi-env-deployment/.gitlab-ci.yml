@@ -1,0 +1,46 @@
+# Add PR title to commit message
+# Run plan on PR only, prevent merge if fails, apply after merging to main
+
+
+stages:
+  - validate
+  - test
+  - build
+  - deploy
+  - cleanup
+
+variables:
+  TF_IN_AUTOMATION: "true"
+  TF_CLI_ARGS: "-no-color"
+  CKV_IS_ALLOW_FAILURE: "true"
+  # ci local
+  PROJECT_ID: "71554181"  # repo name: test
+  TF_HTTP_USERNAME: "
+  TF_HTTP_PASSWORD: ""
+  SLACK_WEBHOOK_URL: ""
+
+fmt-modules:
+  extends: [.opentofu:fmt]
+  variables:
+    GITLAB_TOFU_ROOT_DIR: modules
+  rules:
+    # skip job if pipeline triggered manually or scheduled
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    # run by default in other pipeline sources (push, merge_request, etc.)
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - modules/**/*.tf
+        - .gitlab-ci.yml
+        - .gitlab/*
+    - when: never
+
+include:
+  - '.gitlab/template.yml'
+  - '.gitlab/security.yml'
+  - '.gitlab/docs.yml'
+  # - '.gitlab/envs.yml'
+  - 'envs/dev/.gitlab-ci.yml'
+  - 'envs/prod/.gitlab-ci.yml'

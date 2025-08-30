@@ -1,0 +1,30 @@
+# https://docs.gitlab.com/user/clusters/agent/
+
+# create agent in https://gitlab.com/<USERNAME>/<PROJECT>/-/clusters
+
+# for kubectl command in .gitlab-ci.yml
+# with this file we don't need to specify the KUBE_CONTEXT and KUBECONFIG variables
+ci_access:
+  groups:
+  - id: alyvusal
+  projects:
+  - id: alyvusal/test
+    # PAID
+    # access_as:
+    #   ci_job: {}
+
+# PAID
+# gitops configuration for the GitLab Agent
+# This configuration allows the GitLab Agent to manage Kubernetes manifests
+# and deploy them to the specified Kubernetes cluster.
+# Does not require .gitlab-ci.yml file to be present in the repository.
+# gitops:
+#   manifest_projects:
+#   - id: alyvusal/test
+#     default_namespace: default
+#     paths:
+#     - glob: '**'
+
+# observability:
+#   logging:
+#     level: debug
