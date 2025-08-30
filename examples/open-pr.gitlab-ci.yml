@@ -1,4 +1,3 @@
-# chatgpt
 stages:
   - prepare
   - commit
@@ -43,7 +42,6 @@ open_merge_request:
     - triggers
     - web
 ---
-# grok
 stages:
   - update
 

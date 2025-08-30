@@ -10,7 +10,7 @@ deploy:
     entrypoint: [""]
   script:
     - echo "Deploying to Kubernetes..."
-    - echo "KUBECONFIG is at':' $KUBECONFIG"
+    - echo "KUBECONFIG is at $KUBECONFIG"
     # To use custom kubeconfig file, uncomment the next line
     # create variable KUBECONFIG in https://gitlab.com/<USERNAME>/<PROJECT>/-/settings/ci_cd
     # with type file and content of ~/.kube/config file

@@ -15,7 +15,6 @@ variables:
   HEROKU_STAGING: "registry.heroku.com/$STAGING_APP/web"
   HEROKU_PRODUCTION: "registry.heroku.com/$PRODUCTION_APP/web"
 
-
 lint_test:
   image: python:3.8.0-slim
   stage: test
@@ -46,7 +45,7 @@ build:
   services:
     - docker:dind
   stage: build
-  before_script: 
+  before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker build -t $IMAGE_TAG .
@@ -62,7 +61,7 @@ deploy_feature:
     name: review/$CI_COMMIT_REF_NAME
     url: https://$CI_ENVIRONMENT_SLUG.herokuapp.com/
     on_stop: stop_feature
-  before_script: 
+  before_script:
     - export FEATURE_APP="$CI_ENVIRONMENT_SLUG"
     - export HEROKU_FEATURE="registry.heroku.com/$FEATURE_APP/web"
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -91,7 +90,7 @@ stop_feature:
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
-  before_script: 
+  before_script:
     - export FEATURE_APP="$CI_ENVIRONMENT_SLUG"
   script:
     - docker run --rm -e HEROKU_API_KEY=$HEROKU_STAGING_API_KEY wingrunr21/alpine-heroku-cli apps:destroy --app $FEATURE_APP --confirm $FEATURE_APP
@@ -118,7 +117,7 @@ deploy_stage:
   environment:
     name: staging
     url: https://$STAGING_APP.herokuapp.com/
-  before_script: 
+  before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker pull $IMAGE_TAG
@@ -148,7 +147,7 @@ deploy_production:
   environment:
     name: production
     url: https://$PRODUCTION_APP.herokuapp.com/
-  before_script: 
+  before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker pull $IMAGE_TAG
